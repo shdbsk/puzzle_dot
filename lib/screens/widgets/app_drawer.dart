@@ -1,105 +1,169 @@
 import 'package:flutter/material.dart';
-import 'drawer_item_screen.dart';
+import 'package:puzzle_dot/screens/home_screen.dart';
+import 'package:puzzle_dot/screens/widgets/drawer_item_screen.dart';
 
-class _Item {
+class DrawerMenuItem {
   final String title;
   final IconData icon;
-  const _Item(this.title, this.icon);
+
+  const DrawerMenuItem({
+    required this.title,
+    required this.icon,
+  });
 }
 
-const _items = [
-  _Item('Braille Guide', Icons.menu_book),
-  _Item('학습 기록', Icons.history),
-  _Item('오늘의 도전', Icons.emoji_events_outlined),
-  _Item('앱 정보', Icons.info_outline),
+const drawerMenuItems = [
+  DrawerMenuItem(
+    title: '점자 가이드',
+    icon: Icons.menu_book_outlined,
+  ),
+  DrawerMenuItem(
+    title: '채팅',
+    icon: Icons.chat_bubble_outline,
+  ),
+  DrawerMenuItem(
+    title: '설정',
+    icon: Icons.settings_outlined,
+  ),
+  DrawerMenuItem(
+    title: 'Support',
+    icon: Icons.support_agent_outlined,
+  ),
 ];
 
-class AppDrawer extends StatefulWidget {
-  const AppDrawer({super.key});
+class AppDrawer extends StatelessWidget {
+  final String? selectedTitle;
 
-  @override
-  State<AppDrawer> createState() => _AppDrawerState();
-}
+  const AppDrawer({
+    super.key,
+    this.selectedTitle,
+  });
 
-class _AppDrawerState extends State<AppDrawer> {
-  int _selected = 0;
+  void _selectItem(BuildContext context, DrawerMenuItem item) {
+    Navigator.pop(context);
+
+    if (item.title == '채팅') {
+      Navigator.of(context).pushAndRemoveUntil(
+        MaterialPageRoute(
+          builder: (_) => const MainNavigationScreen(initialIndex: 2),
+        ),
+        (route) => false,
+      );
+      return;
+    }
+
+    if (item.title == '설정') {
+      Navigator.of(context).pushAndRemoveUntil(
+        MaterialPageRoute(
+          builder: (_) => const MainNavigationScreen(initialIndex: 3),
+        ),
+        (route) => false,
+      );
+      return;
+    }
+
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (_) => DrawerItemScreen(title: item.title),
+      ),
+    );
+  }
+
+  Widget _buildMenuTile(BuildContext context, DrawerMenuItem item) {
+    final isSelected = item.title == selectedTitle;
+
+    return Semantics(
+      button: true,
+      selected: isSelected,
+      label: '${item.title} 메뉴',
+      child: Material(
+        color: isSelected ? const Color(0xFF1D4ED8) : Colors.transparent,
+        borderRadius: BorderRadius.circular(14),
+        child: InkWell(
+          borderRadius: BorderRadius.circular(14),
+          onTap: () => _selectItem(context, item),
+          child: Padding(
+            padding: const EdgeInsets.symmetric(
+              horizontal: 14,
+              vertical: 14,
+            ),
+            child: Row(
+              children: [
+                Icon(
+                  item.icon,
+                  color: isSelected ? Colors.white : const Color(0xFF64748B),
+                  size: 22,
+                ),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: Text(
+                    item.title,
+                    style: TextStyle(
+                      fontSize: 15,
+                      fontWeight:
+                          isSelected ? FontWeight.w800 : FontWeight.w600,
+                      color:
+                          isSelected ? Colors.white : const Color(0xFF0F172A),
+                    ),
+                  ),
+                ),
+                if (isSelected)
+                  const Icon(
+                    Icons.check,
+                    color: Colors.white,
+                    size: 18,
+                  ),
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
+  }
 
   @override
   Widget build(BuildContext context) {
     return Drawer(
+      backgroundColor: const Color(0xFFF8FAFC),
       child: SafeArea(
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
             Container(
-              padding: const EdgeInsets.fromLTRB(20, 28, 20, 20),
-              decoration: const BoxDecoration(
-                gradient: LinearGradient(
-                  colors: [Color(0xFFECF4FF), Color(0xFFFFFFFF)],
-                  begin: Alignment.topLeft,
-                  end: Alignment.bottomRight,
-                ),
-              ),
-              child: const Text(
-                'PuzzleDot',
-                style: TextStyle(
-                  fontSize: 22,
-                  fontWeight: FontWeight.w900,
-                  color: Color(0xFF1D4ED8),
-                ),
+              padding: const EdgeInsets.fromLTRB(20, 28, 20, 22),
+              color: Colors.white,
+              child: const Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    'PuzzleDot',
+                    style: TextStyle(
+                      fontSize: 24,
+                      fontWeight: FontWeight.w900,
+                      color: Color(0xFF1D4ED8),
+                    ),
+                  ),
+                  SizedBox(height: 6),
+                  Text(
+                    '메뉴',
+                    style: TextStyle(
+                      fontSize: 13,
+                      color: Color(0xFF64748B),
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
+                ],
               ),
             ),
+            const SizedBox(height: 8),
             Expanded(
-              child: ListView.builder(
-                padding: const EdgeInsets.symmetric(
-                    horizontal: 12, vertical: 8),
-                itemCount: _items.length,
-                itemBuilder: (context, i) {
-                  final item = _items[i];
-                  final sel = _selected == i;
-                  return Container(
-                    margin: const EdgeInsets.only(bottom: 4),
-                    decoration: BoxDecoration(
-                      color: sel
-                          ? const Color(0xFF1D4ED8)
-                          : Colors.transparent,
-                      borderRadius: BorderRadius.circular(14),
-                    ),
-                    child: ListTile(
-                      leading: Icon(
-                        item.icon,
-                        color: sel
-                            ? Colors.white
-                            : const Color(0xFF64748B),
-                        size: 22,
-                      ),
-                      title: Text(
-                        item.title,
-                        style: TextStyle(
-                          fontSize: 15,
-                          fontWeight:
-                              sel ? FontWeight.w700 : FontWeight.w500,
-                          color: sel
-                              ? Colors.white
-                              : const Color(0xFF0F172A),
-                        ),
-                      ),
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(14),
-                      ),
-                      onTap: () {
-                        setState(() => _selected = i);
-                        Navigator.pop(context);
-                        Navigator.push(
-                          context,
-                          MaterialPageRoute(
-                            builder: (_) =>
-                                DrawerItemScreen(title: item.title),
-                          ),
-                        );
-                      },
-                    ),
-                  );
+              child: ListView.separated(
+                padding: const EdgeInsets.fromLTRB(12, 8, 12, 20),
+                itemCount: drawerMenuItems.length,
+                separatorBuilder: (_, __) => const SizedBox(height: 4),
+                itemBuilder: (context, index) {
+                  return _buildMenuTile(context, drawerMenuItems[index]);
                 },
               ),
             ),

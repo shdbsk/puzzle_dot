@@ -33,14 +33,22 @@ class _CameraGuideScreenState extends State<CameraGuideScreen> {
 
   @override
   void dispose() {
+    _tts.stop();
     _tts.dispose();
     super.dispose();
   }
 
   Future<void> _confirm() async {
     final prefs = await SharedPreferences.getInstance();
+
     await prefs.setBool(
-        '${PrefsKeys.cameraGuidePrefix}${widget.levelId}', true);
+      PrefsKeys.cameraGuideKey(widget.levelId),
+      true,
+    );
+
+    await _tts.stop();
+
+    if (!mounted) return;
     widget.onConfirm();
   }
 
@@ -58,16 +66,19 @@ class _CameraGuideScreenState extends State<CameraGuideScreen> {
               const Text(
                 '카메라 거치 안내',
                 style: TextStyle(
-                    fontSize: 22, fontWeight: FontWeight.w800),
+                  fontSize: 22,
+                  fontWeight: FontWeight.w800,
+                ),
               ),
               const SizedBox(height: 8),
               const Text(
                 '보호자 전용 화면입니다',
                 style: TextStyle(
-                    fontSize: 14, color: Color(0xFF64748B)),
+                  fontSize: 14,
+                  color: Color(0xFF64748B),
+                ),
               ),
               const SizedBox(height: 32),
-              // 거치 가이드 일러스트 영역
               Container(
                 height: 220,
                 decoration: BoxDecoration(
@@ -75,81 +86,106 @@ class _CameraGuideScreenState extends State<CameraGuideScreen> {
                   borderRadius: BorderRadius.circular(24),
                   boxShadow: const [
                     BoxShadow(
-                        color: Color(0x0E000000),
-                        blurRadius: 20,
-                        offset: Offset(0, 8))
+                      color: Color(0x0E000000),
+                      blurRadius: 20,
+                      offset: Offset(0, 8),
+                    ),
                   ],
                 ),
                 child: const Column(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
-                    Icon(Icons.smartphone,
-                        size: 64, color: Color(0xFF2563EB)),
+                    Icon(
+                      Icons.smartphone,
+                      size: 64,
+                      color: Color(0xFF2563EB),
+                    ),
                     SizedBox(height: 8),
-                    Icon(Icons.arrow_downward,
-                        size: 28, color: Color(0xFF94A3B8)),
+                    Icon(
+                      Icons.arrow_downward,
+                      size: 28,
+                      color: Color(0xFF94A3B8),
+                    ),
                     SizedBox(height: 8),
                     Text(
                       '점자판',
                       style: TextStyle(
-                          fontSize: 16,
-                          fontWeight: FontWeight.w700,
-                          color: Color(0xFF475569)),
+                        fontSize: 16,
+                        fontWeight: FontWeight.w700,
+                        color: Color(0xFF475569),
+                      ),
                     ),
                     SizedBox(height: 4),
                     Text(
                       '카메라가 점자판 바로 위를\n수직으로 향하도록 거치',
                       textAlign: TextAlign.center,
                       style: TextStyle(
-                          fontSize: 13, color: Color(0xFF94A3B8)),
+                        fontSize: 13,
+                        color: Color(0xFF94A3B8),
+                      ),
                     ),
                   ],
                 ),
               ),
               const SizedBox(height: 28),
-              Text(
+              const Text(
                 _guideText,
-                style: const TextStyle(
-                    fontSize: 15,
-                    color: Color(0xFF475569),
-                    height: 1.6),
+                style: TextStyle(
+                  fontSize: 15,
+                  color: Color(0xFF475569),
+                  height: 1.6,
+                ),
               ),
               const Spacer(),
               Row(
                 children: [
                   Expanded(
-                    child: OutlinedButton(
-                      onPressed: () => _tts.speak(_guideText),
-                      style: OutlinedButton.styleFrom(
-                        minimumSize: const Size.fromHeight(56),
-                        side: const BorderSide(
-                            color: Color(0xFF2563EB), width: 1.5),
-                        shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(18)),
-                      ),
-                      child: const Text('다시 듣기',
+                    child: Semantics(
+                      button: true,
+                      label: '카메라 거치 안내 다시 듣기',
+                      child: OutlinedButton(
+                        onPressed: () => _tts.speak(_guideText),
+                        style: OutlinedButton.styleFrom(
+                          minimumSize: const Size.fromHeight(56),
+                          side: const BorderSide(
+                            color: Color(0xFF2563EB),
+                            width: 1.5,
+                          ),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(18),
+                          ),
+                        ),
+                        child: const Text(
+                          '다시 듣기',
                           style: TextStyle(
-                              fontSize: 15,
-                              fontWeight: FontWeight.w700,
-                              color: Color(0xFF2563EB))),
+                            fontSize: 15,
+                            fontWeight: FontWeight.w700,
+                            color: Color(0xFF2563EB),
+                          ),
+                        ),
+                      ),
                     ),
                   ),
                   const SizedBox(width: 12),
                   Expanded(
                     child: Semantics(
                       button: true,
-                      label: '확인, 학습 시작, 버튼',
+                      label: '확인, 학습 시작',
                       child: ElevatedButton(
                         onPressed: _confirm,
                         style: ElevatedButton.styleFrom(
                           minimumSize: const Size.fromHeight(56),
                           shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(18)),
+                            borderRadius: BorderRadius.circular(18),
+                          ),
                         ),
-                        child: const Text('확인',
-                            style: TextStyle(
-                                fontSize: 16,
-                                fontWeight: FontWeight.w700)),
+                        child: const Text(
+                          '확인',
+                          style: TextStyle(
+                            fontSize: 16,
+                            fontWeight: FontWeight.w700,
+                          ),
+                        ),
                       ),
                     ),
                   ),

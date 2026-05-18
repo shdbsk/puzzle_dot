@@ -1,17 +1,22 @@
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:puzzle_dot/core/constants/prefs_keys.dart';
 
 class XpService {
-  static const _keyTotalXp = 'total_xp';
+  XpService._();
+
   static const int xpPerItem = 150;
 
-  static Future<void> addXp() async {
+  static Future<int> addXp({int amount = xpPerItem}) async {
     final prefs = await SharedPreferences.getInstance();
-    final current = prefs.getInt(_keyTotalXp) ?? 0;
-    await prefs.setInt(_keyTotalXp, current + xpPerItem);
+    final current = prefs.getInt(PrefsKeys.totalXp) ?? 0;
+    final updated = current + amount;
+
+    await prefs.setInt(PrefsKeys.totalXp, updated);
+    return updated;
   }
 
   static Future<int> getTotalXp() async {
     final prefs = await SharedPreferences.getInstance();
-    return prefs.getInt(_keyTotalXp) ?? 0;
+    return prefs.getInt(PrefsKeys.totalXp) ?? 0;
   }
 }
