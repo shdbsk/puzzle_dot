@@ -1,7 +1,9 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:puzzle_dot/core/constants/prefs_keys.dart';
-import 'package:puzzle_dot/screens/home_screen.dart';
+import 'package:puzzle_dot/screens/home/home_screen.dart';
 import 'package:puzzle_dot/services/tts/app_tts_service.dart';
 import 'package:puzzle_dot/services/tts/tts_script_provider.dart';
 
@@ -22,20 +24,23 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
 
   bool _isStarting = false;
 
-  @override
+    @override
   void initState() {
     super.initState();
 
+    /// 화면 진입 후 온보딩 안내 TTS 실행
+    ///
+    /// 문장 내용은 TtsScriptProvider가 담당
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      _tts.speak(_welcomeMessage);
+      unawaited(_tts.speak(_welcomeMessage));
     });
   }
 
-  @override
-  void dispose() {
-    _tts.stop();
-    super.dispose();
-  }
+    @override
+    void dispose() {
+      unawaited(_tts.stop());
+      super.dispose();
+    }
 
   Future<void> _startLearning() async {
     if (_isStarting) return;

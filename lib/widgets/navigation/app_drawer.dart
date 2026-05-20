@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:puzzle_dot/models/drawer_menu_item.dart';
-import 'package:puzzle_dot/screens/home_screen.dart';
-import 'package:puzzle_dot/screens/widgets/drawer_item_screen.dart';
+import 'package:puzzle_dot/screens/home/home_screen.dart';
+import 'package:puzzle_dot/widgets/navigation/drawer_item_screen.dart';
 
 const List<DrawerMenuItem> drawerMenuItems = [
   DrawerMenuItem(

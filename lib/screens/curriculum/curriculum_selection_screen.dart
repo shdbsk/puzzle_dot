@@ -1,12 +1,12 @@
 import 'dart:async';
 
 import 'package:flutter/material.dart';
-import 'package:puzzle_dot/data/curriculum_data.dart';
+import 'package:puzzle_dot/services/curriculum/curriculum_service.dart';
 import 'package:puzzle_dot/models/curriculum_item.dart';
-import 'package:puzzle_dot/screens/active_learning_screen.dart';
-import 'package:puzzle_dot/screens/widgets/curriculum_card.dart';
-import 'package:puzzle_dot/screens/widgets/curriculum_progress_header.dart';
-import 'package:puzzle_dot/screens/widgets/empty_curriculum_view.dart';
+import 'package:puzzle_dot/screens/learning/active_learning_screen.dart';
+import 'package:puzzle_dot/screens/curriculum/widgets/curriculum_card.dart';
+import 'package:puzzle_dot/screens/curriculum/widgets/curriculum_progress_header.dart';
+import 'package:puzzle_dot/screens/curriculum/widgets/empty_curriculum_view.dart';
 import 'package:puzzle_dot/services/progress_service.dart';
 import 'package:puzzle_dot/services/tts/app_tts_service.dart';
 import 'package:puzzle_dot/services/tts/tts_script_provider.dart';
@@ -33,7 +33,7 @@ class _CurriculumSelectionScreenState extends State<CurriculumSelectionScreen> {
   bool _isSpeaking = false;
 
   List<CurriculumItem> get _items {
-    return curriculumData[widget.levelId] ?? [];
+    return CurriculumService.getItemsByLevel(widget.levelId);
   }
 
   /// 커리큘럼 선택 안내 문장

@@ -7,12 +7,12 @@ import 'package:puzzle_dot/controllers/active_learning_controller.dart';
 import 'package:puzzle_dot/models/curriculum_item.dart';
 import 'package:puzzle_dot/models/learning_capture_source.dart';
 import 'package:puzzle_dot/models/learning_result.dart';
-import 'package:puzzle_dot/screens/level_completion_screen.dart';
-import 'package:puzzle_dot/screens/widgets/analyze_button.dart';
-import 'package:puzzle_dot/screens/widgets/learning_debug_panel.dart';
-import 'package:puzzle_dot/screens/widgets/learning_goal_card.dart';
-import 'package:puzzle_dot/screens/widgets/learning_instruction_card.dart';
-import 'package:puzzle_dot/screens/widgets/learning_progress_header.dart';
+import 'package:puzzle_dot/screens/completion/level_completion_screen.dart';
+import 'package:puzzle_dot/screens/learning/widgets/analyze_button.dart';
+import 'package:puzzle_dot/screens/learning/widgets/learning_debug_panel.dart';
+import 'package:puzzle_dot/screens/learning/widgets/learning_goal_card.dart';
+import 'package:puzzle_dot/screens/learning/widgets/learning_instruction_card.dart';
+import 'package:puzzle_dot/screens/learning/widgets/learning_progress_header.dart';
 import 'package:puzzle_dot/services/tts/app_tts_service.dart';
 import 'package:puzzle_dot/services/tts/tts_script_provider.dart';
 
@@ -39,6 +39,7 @@ class ActiveLearningScreen extends StatefulWidget {
 class _ActiveLearningScreenState extends State<ActiveLearningScreen> {
   late final ActiveLearningController _controller;
   final AppTtsService _tts = AppTtsService();
+  bool _isLeavingScreen = false;
 
   int get _completedCount => widget.currentIndex;
   int get _totalCount => widget.allItems.length;
@@ -62,7 +63,14 @@ class _ActiveLearningScreenState extends State<ActiveLearningScreen> {
   void dispose() {
     _controller.removeListener(_handleControllerChanged);
     _controller.dispose();
-    unawaited(_tts.stop());
+
+    /// 화면 이동 중 dispose에서는 stop 호출 방지
+    ///
+    /// 정답 완료 화면 TTS가 이전 학습 화면 stop에 의해 끊기는 문제 방지
+    if (!_isLeavingScreen) {
+      unawaited(_tts.stop());
+    }
+
     super.dispose();
   }
 
@@ -125,6 +133,8 @@ class _ActiveLearningScreenState extends State<ActiveLearningScreen> {
   }
 
   void _goCompletion() {
+    _isLeavingScreen = true;
+  
     Navigator.pushReplacement(
       context,
       MaterialPageRoute(

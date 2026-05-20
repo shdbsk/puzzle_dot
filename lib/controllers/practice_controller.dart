@@ -5,6 +5,7 @@ import 'package:puzzle_dot/services/camera_service.dart';
 import 'package:puzzle_dot/services/permission_service.dart';
 
 enum PracticeCameraStatus {
+  permissionRequired,
   checking,
   permissionDenied,
   unavailable,
@@ -14,10 +15,9 @@ enum PracticeCameraStatus {
 /// Practice 화면 상태 컨트롤러
 ///
 /// 역할:
-/// - 카메라 권한 확인
-/// - 카메라 초기화
-/// - 촬영 요청
-/// - 화면에 필요한 상태만 노출
+/// - 카메라 권한 확인 전/중/거절 상태 관리
+/// - 카메라 없음/준비 완료 상태 관리
+/// - 촬영 요청 처리
 ///
 /// UI는 CameraService, PermissionService 직접 호출하지 않음
 class PracticeController extends ChangeNotifier {
@@ -27,7 +27,7 @@ class PracticeController extends ChangeNotifier {
     CameraService? cameraService,
   }) : _cameraService = cameraService ?? CameraService();
 
-  PracticeCameraStatus _status = PracticeCameraStatus.checking;
+  PracticeCameraStatus _status = PracticeCameraStatus.permissionRequired;
   bool _isPreparing = false;
   bool _isCapturing = false;
   CameraCaptureResult? _lastCaptureResult;
@@ -40,7 +40,7 @@ class PracticeController extends ChangeNotifier {
 
   /// 권한 확인 후 카메라 준비
   ///
-  /// Practice 화면 진입 또는 다시 확인 버튼에서만 호출
+  /// 사용자가 확인/다시 확인 버튼을 눌렀을 때만 호출
   Future<void> prepare() async {
     if (_isPreparing) return;
 

@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:puzzle_dot/screens/widgets/app_drawer.dart';
+import 'package:puzzle_dot/widgets/navigation/app_drawer.dart';
 
 class DrawerItemScreen extends StatelessWidget {
   final String title;

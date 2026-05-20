@@ -1,10 +1,18 @@
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:puzzle_dot/core/constants/prefs_keys.dart';
-import 'package:puzzle_dot/data/curriculum_data.dart';
 import 'package:puzzle_dot/models/curriculum_item.dart';
+import 'package:puzzle_dot/services/curriculum/curriculum_service.dart';
 import 'package:puzzle_dot/services/streak_service.dart';
 import 'package:puzzle_dot/services/xp_service.dart';
 
+/// 학습 진행률 저장 서비스
+///
+/// 역할:
+/// - 학습 완료 여부 저장
+/// - 레벨별 진행률 계산
+/// - XP / Daily Streak 갱신 연결
+///
+/// 커리큘럼 원본 데이터 구조는 CurriculumService를 통해 접근
 class ProgressService {
   ProgressService._();
 
@@ -42,7 +50,7 @@ class ProgressService {
     final prefs = await SharedPreferences.getInstance();
     final result = <String, double>{};
 
-    for (final entry in curriculumData.entries) {
+    for (final entry in CurriculumService.getLevelMap().entries) {
       final levelId = entry.key;
       final items = entry.value;
 
@@ -63,7 +71,7 @@ class ProgressService {
 
   static Future<int> getTotalCompletedCount() async {
     final prefs = await SharedPreferences.getInstance();
-    final allItems = curriculumData.values.expand((items) => items);
+    final allItems = CurriculumService.getAllItems();
 
     return allItems
         .where((item) => prefs.getBool(PrefsKeys.doneKey(item.id)) ?? false)
@@ -71,9 +79,6 @@ class ProgressService {
   }
 
   static int getTotalItemCount() {
-    return curriculumData.values.fold<int>(
-      0,
-      (sum, items) => sum + items.length,
-    );
+    return CurriculumService.getTotalItemCount();
   }
 }

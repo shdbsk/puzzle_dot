@@ -3,15 +3,20 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:puzzle_dot/controllers/practice_controller.dart';
 import 'package:puzzle_dot/models/learning_capture_source.dart';
-import 'package:puzzle_dot/screens/permission_screen.dart';
-import 'package:puzzle_dot/screens/widgets/camera_unavailable_view.dart';
-import 'package:puzzle_dot/screens/widgets/practice_camera_view.dart';
-import 'package:puzzle_dot/screens/widgets/practice_loading_view.dart';
+import 'package:puzzle_dot/screens/practice/permission_screen.dart';
+import 'package:puzzle_dot/screens/practice/widgets/camera_unavailable_view.dart';
+import 'package:puzzle_dot/screens/practice/widgets/practice_camera_view.dart';
+import 'package:puzzle_dot/screens/practice/widgets/practice_loading_view.dart';
 import 'package:puzzle_dot/services/tts/app_tts_service.dart';
 import 'package:puzzle_dot/services/tts/tts_script_provider.dart';
 
 class PracticeScreen extends StatefulWidget {
-  const PracticeScreen({super.key});
+  final VoidCallback? onHome;
+
+  const PracticeScreen({
+    super.key,
+    this.onHome,
+  });
 
   @override
   State<PracticeScreen> createState() => _PracticeScreenState();
@@ -30,10 +35,9 @@ class _PracticeScreenState extends State<PracticeScreen> {
     _controller = PracticeController();
     _controller.addListener(_handleControllerChanged);
 
-    /// Practice 탭이 실제 선택된 뒤 권한 확인 시작
+    /// 권한 확인은 자동 실행하지 않음
     ///
-    /// HomeScreen에서 lazy 생성하므로 앱 시작 시점에는 실행되지 않음
-    unawaited(_controller.prepare());
+    /// 사용자가 확인 버튼을 눌렀을 때만 카메라 권한 확인 시작
   }
 
   @override
@@ -49,9 +53,6 @@ class _PracticeScreenState extends State<PracticeScreen> {
 
     setState(() {});
 
-    /// 권한 안내 TTS는 CameraPermissionView에서만 실행
-    ///
-    /// ready/unavailable 상태 안내만 Practice 화면에서 담당
     final status = _controller.status;
     if (_lastSpokenStatus == status) return;
 
@@ -66,13 +67,15 @@ class _PracticeScreenState extends State<PracticeScreen> {
         unawaited(_tts.speak(TtsScriptProvider.cameraUnavailable));
         break;
 
+      case PracticeCameraStatus.permissionRequired:
       case PracticeCameraStatus.checking:
       case PracticeCameraStatus.permissionDenied:
+        /// 권한 관련 TTS는 CameraPermissionView에서만 담당
         break;
     }
   }
 
-  Future<void> _retryCameraSetup() async {
+  Future<void> _confirmCameraPermission() async {
     _lastSpokenStatus = null;
     await _controller.prepare();
   }
@@ -112,6 +115,11 @@ class _PracticeScreenState extends State<PracticeScreen> {
   }
 
   void _goHome() {
+    if (widget.onHome != null) {
+      widget.onHome!();
+      return;
+    }
+
     Navigator.popUntil(context, (route) => route.isFirst);
   }
 
@@ -125,18 +133,26 @@ class _PracticeScreenState extends State<PracticeScreen> {
 
   Widget _buildBody() {
     switch (_controller.status) {
+      case PracticeCameraStatus.permissionRequired:
+        return CameraPermissionView(
+          isRetry: false,
+          onConfirm: _confirmCameraPermission,
+          onHome: _goHome,
+        );
+
       case PracticeCameraStatus.checking:
         return const PracticeLoadingView();
 
       case PracticeCameraStatus.permissionDenied:
         return CameraPermissionView(
-          onRetry: _retryCameraSetup,
+          isRetry: true,
+          onConfirm: _confirmCameraPermission,
           onHome: _goHome,
         );
 
       case PracticeCameraStatus.unavailable:
         return CameraUnavailableView(
-          onRetry: _retryCameraSetup,
+          onRetry: _confirmCameraPermission,
           onHome: _goHome,
         );
 

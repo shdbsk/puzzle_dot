@@ -1,11 +1,12 @@
 import 'package:puzzle_dot/models/curriculum_item.dart';
+import 'package:puzzle_dot/services/tts/tts_pronunciation_service.dart';
 
 /// TTS 안내 문장 관리
 ///
 /// 역할:
 /// - 화면별 음성 안내 문장 제공
-/// - 화면 표시 문구와 음성 문구 분리
-/// - 점형 표현을 자연스러운 한국어로 변환
+/// - 문장 생성과 발음 변환 연결
+/// - 화면은 발음 치환 규칙을 직접 알지 않음
 class TtsScriptProvider {
   TtsScriptProvider._();
 
@@ -20,7 +21,13 @@ class TtsScriptProvider {
       '준비되면 확인 버튼을 눌러주세요.';
 
   static const String cameraPermissionRequired =
-      '카메라 권한이 필요합니다. 설정에서 카메라 권한을 허용해주세요.';
+      '카메라 권한이 필요합니다. 확인 버튼을 눌러 권한을 확인해주세요.';
+
+  static const String cameraPermissionChecking =
+      '카메라 권한을 확인 중입니다. 잠시 기다려주세요.';
+
+  static const String cameraPermissionDenied =
+      '카메라 권한을 다시 확인해주세요.';
 
   static const String cameraPermissionRetry =
       '카메라 권한을 다시 확인합니다. 권한을 허용한 뒤 다시 확인해주세요.';
@@ -44,9 +51,11 @@ class TtsScriptProvider {
       return normalizeForSpeech(item.ttsGuide);
     }
 
-    return '이번 학습은 ${spokenItemName(item.character)}, '
-        '${normalizeForSpeech(item.description)}입니다. '
-        '점자판을 완성한 뒤 촬영 버튼을 눌러주세요.';
+    return normalizeForSpeech(
+      '이번 학습은 ${spokenItemName(item.character)}, '
+      '${item.description}입니다. '
+      '점자판을 완성한 뒤 촬영 버튼을 눌러주세요.',
+    );
   }
 
   static String progressSummary({
@@ -68,11 +77,13 @@ class TtsScriptProvider {
         ? '경험치 $xpEarned점을 획득했습니다.'
         : '이미 완료한 학습이라 추가 경험치는 없습니다.';
 
-    return '정답입니다! $itemMessage $xpMessage';
+    return normalizeForSpeech('정답입니다! $itemMessage $xpMessage');
   }
 
   static String incorrectHint(CurriculumItem item) {
-    return '${spokenItemName(item.character)} 점형을 다시 확인해주세요.';
+    return normalizeForSpeech(
+      '${spokenItemName(item.character)} 점형을 다시 확인해주세요.',
+    );
   }
 
   static String incompleteHint() {
@@ -80,25 +91,10 @@ class TtsScriptProvider {
   }
 
   static String spokenItemName(String value) {
-    return normalizeForSpeech(value.trim());
+    return TtsPronunciationService.itemName(value);
   }
 
   static String normalizeForSpeech(String value) {
-    var result = value;
-
-    final replacements = <String, String>{
-      '1번점': '첫번째',
-      '2번점': '두번째',
-      '3번점': '세번째',
-      '4번점': '네번째',
-      '5번점': '다섯번째',
-      '6번점': '여섯번째',
-    };
-
-    for (final entry in replacements.entries) {
-      result = result.replaceAll(entry.key, entry.value);
-    }
-
-    return result;
+    return TtsPronunciationService.normalize(value);
   }
 }

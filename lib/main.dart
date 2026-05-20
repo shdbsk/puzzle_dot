@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:puzzle_dot/core/constants/prefs_keys.dart';
-import 'package:puzzle_dot/screens/home_screen.dart';
-import 'package:puzzle_dot/screens/onboarding_screen.dart';
+import 'package:puzzle_dot/screens/home/home_screen.dart';
+import 'package:puzzle_dot/screens/onboarding/onboarding_screen.dart';
 
 void main() {
   runApp(const PuzzleDotApp());

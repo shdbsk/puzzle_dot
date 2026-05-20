@@ -1,16 +1,18 @@
 import 'dart:async';
 
 import 'package:flutter/material.dart';
+import 'package:puzzle_dot/data/curriculum/home_learning_levels.dart';
 import 'package:puzzle_dot/models/home_learning_level.dart';
-import 'package:puzzle_dot/screens/chat_screen.dart';
-import 'package:puzzle_dot/screens/curriculum_selection_screen.dart';
-import 'package:puzzle_dot/screens/practice_screen.dart';
-import 'package:puzzle_dot/screens/settings_screen.dart';
-import 'package:puzzle_dot/screens/widgets/app_drawer.dart';
-import 'package:puzzle_dot/screens/widgets/home_action_card.dart';
-import 'package:puzzle_dot/screens/widgets/home_level_card.dart';
-import 'package:puzzle_dot/screens/widgets/home_stat_card.dart';
+import 'package:puzzle_dot/screens/misc/chat_screen.dart';
+import 'package:puzzle_dot/screens/curriculum/curriculum_selection_screen.dart';
+import 'package:puzzle_dot/screens/practice/practice_screen.dart';
+import 'package:puzzle_dot/screens/misc/settings_screen.dart';
+import 'package:puzzle_dot/widgets/navigation/app_drawer.dart';
+import 'package:puzzle_dot/screens/home/widgets/home_action_card.dart';
+import 'package:puzzle_dot/screens/home/widgets/home_level_card.dart';
+import 'package:puzzle_dot/screens/home/widgets/home_stat_card.dart';
 import 'package:puzzle_dot/services/progress_service.dart';
+import 'package:puzzle_dot/services/progress/level_unlock_service.dart';
 import 'package:puzzle_dot/services/streak_service.dart';
 import 'package:puzzle_dot/services/tts/app_tts_service.dart';
 import 'package:puzzle_dot/services/tts_manager.dart';
@@ -36,54 +38,6 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> {
   int _dailyStreak = 0;
   int _totalXp = 0;
 
-  /// 화면 표시용 레벨 정의
-  ///
-  /// 입문은 1단계만 사용
-  /// 이후 단계는 초급/중급/고급 각각 2단계 구성
-  static const List<HomeLearningLevel> _levels = [
-    HomeLearningLevel(
-      id: 'ENT_1',
-      title: '입문 1',
-      subtitle: '점자의 기본 구조 익히기',
-      group: HomeLevelGroup.intro,
-    ),
-    HomeLearningLevel(
-      id: 'BAS_1',
-      title: '초급 1',
-      subtitle: '기본 자음 학습',
-      group: HomeLevelGroup.beginner,
-    ),
-    HomeLearningLevel(
-      id: 'BAS_2',
-      title: '초급 2',
-      subtitle: '기본 모음 학습',
-      group: HomeLevelGroup.beginner,
-    ),
-    HomeLearningLevel(
-      id: 'INT_1',
-      title: '중급 1',
-      subtitle: '된소리와 복합 모음 학습',
-      group: HomeLevelGroup.intermediate,
-    ),
-    HomeLearningLevel(
-      id: 'INT_2',
-      title: '중급 2',
-      subtitle: '단어 읽기와 조합 연습',
-      group: HomeLevelGroup.intermediate,
-    ),
-    HomeLearningLevel(
-      id: 'ADV_1',
-      title: '고급 1',
-      subtitle: '문장 읽기 연습',
-      group: HomeLevelGroup.advanced,
-    ),
-    HomeLearningLevel(
-      id: 'ADV_2',
-      title: '고급 2',
-      subtitle: '실전 점자 학습',
-      group: HomeLevelGroup.advanced,
-    ),
-  ];
 
   @override
   void initState() {
@@ -170,29 +124,6 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> {
     await _loadDashboardData();
   }
 
-  /// 레벨 잠금 조건
-  ///
-  /// 입문 완료 후 초급 진입
-  /// 초급/중급은 이전 그룹 평균 50% 이상 시 다음 그룹 진입
-  bool _isUnlocked(HomeLearningLevel level) {
-    switch (level.group) {
-      case HomeLevelGroup.intro:
-        return true;
-
-      case HomeLevelGroup.beginner:
-        return (_progressMap['ENT_1'] ?? 0) >= 1.0;
-
-      case HomeLevelGroup.intermediate:
-        final beginnerAverage =
-            ((_progressMap['BAS_1'] ?? 0) + (_progressMap['BAS_2'] ?? 0)) / 2;
-        return beginnerAverage >= 0.5;
-
-      case HomeLevelGroup.advanced:
-        final intermediateAverage =
-            ((_progressMap['INT_1'] ?? 0) + (_progressMap['INT_2'] ?? 0)) / 2;
-        return intermediateAverage >= 0.5;
-    }
-  }
 
   /// 선택된 탭만 생성
   ///
@@ -203,7 +134,7 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> {
         return _buildHomeTab();
 
       case 1:
-        return const PracticeScreen();
+        return PracticeScreen(onHome: _goHome);
 
       case 2:
         return ChatScreen(onBackPressed: _goHome);
@@ -220,7 +151,7 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> {
   }
 
   Widget _buildHomeTab() {
-    final visibleLevels = _levels.take(4).toList();
+    final visibleLevels = homeLearningLevels;
 
     return RefreshIndicator(
       onRefresh: _loadDashboardData,
@@ -267,7 +198,10 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> {
               HomeLevelCard(
                 level: level,
                 progress: _progressMap[level.id] ?? 0,
-                isUnlocked: _isUnlocked(level),
+                isUnlocked: LevelUnlockService.isUnlocked(
+                  level: level,
+                  progressMap: _progressMap,
+                ),
                 onTap: () => _openLevel(level),
               ),
               const SizedBox(height: 14),

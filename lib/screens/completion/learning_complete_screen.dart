@@ -2,8 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_tts/flutter_tts.dart';
 import 'package:puzzle_dot/services/tts_manager.dart';
 import 'package:puzzle_dot/services/tts/tts_config.dart';
-import 'home_screen.dart';
-import 'level_detail_screen.dart';
+import 'package:puzzle_dot/screens/home/home_screen.dart';
+import 'package:puzzle_dot/screens/curriculum/level_detail_screen.dart';
 
 class LearningCompleteScreen extends StatefulWidget {
   final String? levelName;
